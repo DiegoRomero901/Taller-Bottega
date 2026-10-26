@@ -1,0 +1,152 @@
+// Taller Bottega — modelo de datos del MVP.
+// Montos en centavos (Int). Nunca Float para dinero.
+
+generator client {
+  provider = "prisma-client"
+  output   = "../src/generated/prisma"
+}
+
+// Connection URL lives in prisma.config.ts (Prisma 7).
+datasource db {
+  provider = "postgresql"
+}
+
+enum Role {
+  ADMIN
+  MANAGER
+  WORKSHOP
+}
+
+enum OrderStatus {
+  RECEIVED
+  DIAGNOSING
+  QUOTED
+  IN_WORKSHOP
+  READY
+  DELIVERED
+  RETURNED
+}
+
+enum ItemType {
+  BAG
+  SHOE
+  OTHER
+}
+
+enum PhotoStage {
+  INTAKE
+  PROGRESS
+  OUTPUT
+}
+
+enum PaymentMethod {
+  CASH
+  CARD
+  TRANSFER
+}
+
+model User {
+  id           String        @id @default(cuid())
+  name         String
+  email        String        @unique
+  passwordHash String
+  role         Role
+  active       Boolean       @default(true)
+  createdAt    DateTime      @default(now())
+  statusEvents StatusEvent[]
+  payments     Payment[]
+}
+
+model Customer {
+  id        String   @id @default(cuid())
+  name      String
+  phone     String   @unique
+  email     String?
+  createdAt DateTime @default(now())
+  orders    Order[]
+}
+
+model Order {
+  id           String        @id @default(cuid())
+  number       Int           @unique @default(autoincrement())
+  publicToken  String        @unique
+  status       OrderStatus   @default(RECEIVED)
+  dueDate      DateTime?
+  totalCents   Int           @default(0)
+  depositCents Int           @default(0)
+  notes        String?
+  createdAt    DateTime      @default(now())
+  updatedAt    DateTime      @updatedAt
+  customerId   String
+  customer     Customer      @relation(fields: [customerId], references: [id])
+  items        Item[]
+  statusEvents StatusEvent[]
+  payments     Payment[]
+
+  @@index([status])
+  @@index([dueDate])
+}
+
+model Item {
+  id           String        @id @default(cuid())
+  type         ItemType
+  brand        String?
+  description  String
+  orderId      String
+  order        Order         @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  photos       Photo[]
+  serviceLines ServiceLine[]
+}
+
+model Service {
+  id             String        @id @default(cuid())
+  name           String        @unique
+  basePriceCents Int
+  estimatedDays  Int
+  active         Boolean       @default(true)
+  serviceLines   ServiceLine[]
+}
+
+model ServiceLine {
+  id          String  @id @default(cuid())
+  priceCents  Int
+  notes       String?
+  itemId      String
+  item        Item    @relation(fields: [itemId], references: [id], onDelete: Cascade)
+  serviceId   String
+  service     Service @relation(fields: [serviceId], references: [id])
+}
+
+model Photo {
+  id        String     @id @default(cuid())
+  url       String
+  stage     PhotoStage
+  createdAt DateTime   @default(now())
+  itemId    String
+  item      Item       @relation(fields: [itemId], references: [id], onDelete: Cascade)
+}
+
+model StatusEvent {
+  id        String      @id @default(cuid())
+  from      OrderStatus?
+  to        OrderStatus
+  note      String?
+  createdAt DateTime    @default(now())
+  orderId   String
+  order     Order       @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  userId    String
+  user      User        @relation(fields: [userId], references: [id])
+
+  @@index([orderId, createdAt])
+}
+
+model Payment {
+  id          String        @id @default(cuid())
+  amountCents Int
+  method      PaymentMethod
+  createdAt   DateTime      @default(now())
+  orderId     String
+  order       Order         @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  userId      String
+  user        User          @relation(fields: [userId], references: [id])
+}
