@@ -21,5 +21,7 @@ export default defineConfig({
     command: `pnpm start --port ${PORT}`,
     port: PORT,
     reuseExistingServer: !process.env.CI,
+    // `next start` runs in production mode, where Auth.js only accepts trusted hosts.
+    env: { AUTH_TRUST_HOST: "true" },
   },
 });

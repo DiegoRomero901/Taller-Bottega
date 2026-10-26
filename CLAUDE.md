@@ -74,6 +74,7 @@ docs/adr/              # decisiones técnicas
 
 - Con Cache Components, cualquier acceso a `params`, `searchParams`, `cookies()`, `auth()` o la base de datos va dentro de un `<Suspense>`; los datos en vivo llaman `await connection()` antes de usar `new Date()`.
 - No uses `export const dynamic`: es incompatible con Cache Components.
+- `PageProps` y `LayoutProps` son tipos globales que genera Next; por eso `pnpm typecheck` corre `next typegen` antes de `tsc`.
 - `notFound()` dentro de un componente en streaming responde 200 con la página de no encontrado; las pruebas e2e revisan el contenido, no el código HTTP.
 
 ## Al trabajar en este repo

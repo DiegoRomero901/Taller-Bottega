@@ -7,7 +7,7 @@
     "build": "next build",
     "start": "next start",
     "lint": "eslint",
-    "typecheck": "tsc --noEmit",
+    "typecheck": "next typegen && tsc --noEmit",
     "test": "vitest run",
     "test:watch": "vitest",
     "test:e2e": "playwright test",
@@ -60,5 +60,6 @@
   },
   "engines": {
     "node": ">=20"
-  }
+  },
+  "packageManager": "pnpm@10.28.0"
 }
